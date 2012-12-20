@@ -65,6 +65,7 @@ function parseArgs($argv) {
 	$result['username'] = 'root';    
 	$result['password'] = '';
 	$result['database'] = '';
+	$result['encoding'] = 'utf8';       // Set connection encoding. Use blank for default
 	$result['find'] = '';               // what we are looking for
 	$result['replace'] = '';            // what we are replacing with
 
@@ -82,11 +83,39 @@ function parseArgs($argv) {
 	return $result;
 }
 
-$args = parseArgs($argv);
+/**
+ * Connect to the database
+ * 
+ * @throws RuntimeException
+ * @param array $args Connection parameters
+ * @return resource
+ */
+function dbConnect($args) {
+	
+	$result = mysql_connect($args['hostname'], $args['username'], $args['password']); 
+	if (!$result) {
+		throw new RuntimeException(mysql_error());
+	}
 
-$cid = mysql_connect($args['hostname'], $args['username'], $args['password']); 
+	if (!empty($args['encoding'])) {
+		mysql_db_query($args['database'], 'SET NAMES ' . $args['encoding'], $result);
+		mysql_db_query($args['database'], 'SET CHARACTER_SET ' . $args['encoding'], $result);
+	}
+	
+	return $result;
+}
 
-if (!$cid) { echo("Connecting to DB Error: " . mysql_error() . "<br/>"); }
+try {
+	$args = parseArgs($argv);
+	$cid = dbConnect($args);
+}
+catch (Exception $e) {
+	echo "Fatal error\n";
+	echo "-----------\n";
+	echo $e->getMessage();
+	die();
+}
+
 
 // First, get a list of tables
 
