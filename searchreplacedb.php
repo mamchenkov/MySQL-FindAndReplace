@@ -46,26 +46,52 @@ $stimer = explode( ' ', microtime() );
 $stimer = $stimer[1] + $stimer[0];
 //  -----------
 
-// Database Settings
+/**
+ * Get run-time configuration
+ * 
+ * Parse command line options and return them as
+ * associative array.  Anything in the form of
+ * name=value goes.
+ * 
+ * @todo Check if we are in CLI or web mode. Do not always assume CLI.
+ * @param array $argv All options
+ * @return array
+ */
+function parseArgs($argv) {
+	$result = array();
 
-$host = 'localhost';        // normally localhost, but not necessarily.
-$usr  = 'yourdbuser';       // your db userid
-$pwd  = '';                 // your db password
-$db   = 'yourdb';           // your database
+	// Set some defaults
+	$result['hostname'] = 'localhost';
+	$result['username'] = 'root';    
+	$result['password'] = '';
+	$result['database'] = '';
+	$result['find'] = '';               // what we are looking for
+	$result['replace'] = '';            // what we are replacing with
 
-// Replace options
+	$argCount = count($argv);
+	
+	// $argv[0] is usually the name of the script itself
+	if ($argCount > 1) {
+		for($i = 1; $i < $argCount; $i++) {
+			if (preg_match("/^(.*?)=(.*)$/", $argv[$i], $matches)) {
+				$result[ $matches[1] ] = $matches[2];
+			}
+		}
+	}
 
-$search_for   = 'replace';  // the value you want to search for
-$replace_with = 'replace';  // the value to replace it with
+	return $result;
+}
 
-$cid = mysql_connect($host,$usr,$pwd); 
+$args = parseArgs($argv);
+
+$cid = mysql_connect($args['hostname'], $args['username'], $args['password']); 
 
 if (!$cid) { echo("Connecting to DB Error: " . mysql_error() . "<br/>"); }
 
 // First, get a list of tables
 
 $SQL = "SHOW TABLES";
-$tables_list = mysql_db_query($db, $SQL, $cid);
+$tables_list = mysql_db_query($args['database'], $SQL, $cid);
 
 if (!$tables_list) {
     echo("ERROR: " . mysql_error() . "<br/>$SQL<br/>"); } 
@@ -77,12 +103,12 @@ while ($table_rows = mysql_fetch_array($tables_list)) {
     
     $count_tables_checked++;
     
-    $table = $table_rows['Tables_in_'.$db];
+    $table = $table_rows['Tables_in_' . $args['database']];
     
     echo '<br/>Checking table: '.$table.'<br/>***************<br/>';  // we have tables!
    
     $SQL = "DESCRIBE ".$table ;    // fetch the table description so we know what to do with it
-    $fields_list = mysql_db_query($db, $SQL, $cid);
+    $fields_list = mysql_db_query($args['database'], $SQL, $cid);
     
     // Make a simple array of field column names
     
@@ -105,7 +131,7 @@ while ($table_rows = mysql_fetch_array($tables_list)) {
 // now let's get the data and do search and replaces on it...
     
     $SQL = "SELECT * FROM ".$table;     // fetch the table contents
-    $data = mysql_db_query($db, $SQL, $cid);
+    $data = mysql_db_query($args['database'], $SQL, $cid);
     
     if (!$data) {
         echo("ERROR: " . mysql_error() . "<br/>$SQL<br/>"); } 
@@ -141,7 +167,7 @@ while ($table_rows = mysql_fetch_array($tables_list)) {
 //                
 //                print_r($unserialized);
             
-                recursive_array_replace($search_for, $replace_with, $unserialized);
+                recursive_array_replace($args['find'], $args['replace'], $unserialized);
                 
                 $edited_data = serialize($unserialized);
                 
@@ -154,7 +180,7 @@ while ($table_rows = mysql_fetch_array($tables_list)) {
             
             else {
                 
-                if (is_string($data_to_fix)) $edited_data = str_replace($search_for,$replace_with,$data_to_fix) ;
+                if (is_string($data_to_fix)) $edited_data = str_replace($args['find'],$args['replace'],$data_to_fix) ;
                 
                 }
                 
@@ -182,7 +208,7 @@ while ($table_rows = mysql_fetch_array($tables_list)) {
             $UPDATE_SQL = $UPDATE_SQL.$WHERE_SQL;
             echo $UPDATE_SQL.'<br/><br/>';
             
-            $result = mysql_db_query($db,$UPDATE_SQL,$cid);
+            $result = mysql_db_query($args['database'],$UPDATE_SQL,$cid);
     
             if (!$result) {
                     echo("ERROR: " . mysql_error() . "<br/>$UPDATE_SQL<br/>"); } 
