@@ -97,9 +97,13 @@ function dbConnect($args) {
 		throw new RuntimeException(mysql_error());
 	}
 
+	if (!mysql_select_db($args['database'], $result)) {
+		throw new RuntimeException(mysql_error());
+	}
+
 	if (!empty($args['encoding'])) {
-		mysql_db_query($args['database'], 'SET NAMES ' . $args['encoding'], $result);
-		mysql_db_query($args['database'], 'SET CHARACTER_SET ' . $args['encoding'], $result);
+		mysql_query('SET NAMES ' . $args['encoding'], $result);
+		mysql_query('SET CHARACTER_SET ' . $args['encoding'], $result);
 	}
 	
 	return $result;
@@ -120,7 +124,7 @@ catch (Exception $e) {
 // First, get a list of tables
 
 $SQL = "SHOW TABLES";
-$tables_list = mysql_db_query($args['database'], $SQL, $cid);
+$tables_list = mysql_query($SQL, $cid);
 
 if (!$tables_list) {
     echo("ERROR: " . mysql_error() . "<br/>$SQL<br/>"); } 
@@ -137,7 +141,7 @@ while ($table_rows = mysql_fetch_array($tables_list)) {
     echo '<br/>Checking table: '.$table.'<br/>***************<br/>';  // we have tables!
    
     $SQL = "DESCRIBE ".$table ;    // fetch the table description so we know what to do with it
-    $fields_list = mysql_db_query($args['database'], $SQL, $cid);
+    $fields_list = mysql_query($SQL, $cid);
     
     // Make a simple array of field column names
     
@@ -160,7 +164,7 @@ while ($table_rows = mysql_fetch_array($tables_list)) {
 // now let's get the data and do search and replaces on it...
     
     $SQL = "SELECT * FROM ".$table;     // fetch the table contents
-    $data = mysql_db_query($args['database'], $SQL, $cid);
+    $data = mysql_query($SQL, $cid);
     
     if (!$data) {
         echo("ERROR: " . mysql_error() . "<br/>$SQL<br/>"); } 
@@ -237,7 +241,7 @@ while ($table_rows = mysql_fetch_array($tables_list)) {
             $UPDATE_SQL = $UPDATE_SQL.$WHERE_SQL;
             echo $UPDATE_SQL.'<br/><br/>';
             
-            $result = mysql_db_query($args['database'],$UPDATE_SQL,$cid);
+            $result = mysql_query($UPDATE_SQL,$cid);
     
             if (!$result) {
                     echo("ERROR: " . mysql_error() . "<br/>$UPDATE_SQL<br/>"); } 
