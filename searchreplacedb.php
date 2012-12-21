@@ -145,6 +145,27 @@ function getTables($cid) {
 	return $result;
 }
 
+/**
+ * Print report for gathered statistics
+ * 
+ * To make things simpler, all we do is just iterate over
+ * associative array with stats, clean up the key and use 
+ * it a label for the value.
+ * 
+ * @param array $stats List of gathered stats
+ * @return void
+ */
+function printReport($stats) {
+	out("Report");
+	out("------");
+	foreach ($stats as $key => $value) {
+		$label = preg_replace('/_/', ' ', $key);
+		$label = ucfirst($label);
+		$value = number_format($value);
+		out("$label: $value");
+	}
+}
+
 try {
 	$args = parseArgs($argv);
 	$cid = dbConnect($args);
@@ -157,11 +178,15 @@ catch (Exception $e) {
 	die();
 }
 
+$stats = array();
+$stats['tables_checked'] = 0;
+$stats['items_checked'] = 0;
+$stats['items_changed'] = 0;
 
 // Loop through the tables
 foreach ($tables as $table) {
 
-	$count_tables_checked++;
+	$stats['tables_checked']++;
 
 	out("Checking table: $table");
 
@@ -203,7 +228,7 @@ foreach ($tables as $table) {
 
 		foreach ($column_name as $current_column) {
 			$j++;
-			$count_items_checked++;
+			$stats['items_checked']++;
 
 			$data_to_fix = $row[$current_column];
 			$edited_data = $data_to_fix;            // set the same now - if they're different later we know we need to update
@@ -222,7 +247,7 @@ foreach ($tables as $table) {
 
 			if ($data_to_fix != $edited_data) {   // If they're not the same, we need to add them to the update string
 
-				$count_items_changed++;
+				$stats['items_changed']++;
 
 				if ($need_to_update != false) {
 					$UPDATE_SQL = $UPDATE_SQL.',';  // if this isn't our first time here, add a comma
@@ -255,12 +280,7 @@ foreach ($tables as $table) {
 }
 
 // Report
-
-out("Report");
-out("------");
-out("Tables checked: $count_tables_checked");
-out("Items checked: $count_items_checked");
-out("Items changed: $count_items_changed");
+printReport($stats);
 
 mysql_close($cid); 
 
