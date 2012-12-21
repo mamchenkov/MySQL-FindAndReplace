@@ -117,7 +117,6 @@ function dbConnect($args) {
 
 	if (!empty($args['encoding'])) {
 		dbRun('SET NAMES ' . $args['encoding'], $result);
-		dbRun('SET CHARACTER_SET ' . $args['encoding'], $result);
 	}
 	
 	return $result;
