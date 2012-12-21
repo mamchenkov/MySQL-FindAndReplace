@@ -264,16 +264,15 @@ foreach ($tables as $table) {
 
 		if ($need_to_update) {
 
-		$count_updates_run;
-		$WHERE_SQL = substr($WHERE_SQL,0,-4); // strip off the excess AND - the easiest way to code this without extra flags, etc.
+			$WHERE_SQL = substr($WHERE_SQL,0,-4); // strip off the excess AND - the easiest way to code this without extra flags, etc.
 
-		$UPDATE_SQL = $UPDATE_SQL.$WHERE_SQL;
-		out($UPDATE_SQL);
+			$UPDATE_SQL = $UPDATE_SQL.$WHERE_SQL;
+			out($UPDATE_SQL);
 
-		$result = mysql_query($UPDATE_SQL,$cid);
-		if (!$result) {
-			echo("ERROR: " . mysql_error() . "<br/>$UPDATE_SQL<br/>"); 
-		} 
+			$result = mysql_query($UPDATE_SQL,$cid);
+			if (!$result) {
+				echo("ERROR: " . mysql_error() . "<br/>$UPDATE_SQL<br/>"); 
+			} 
 
 		}
 	}
@@ -307,7 +306,9 @@ function recursive_array_replace($find, $replace, &$data) {
 		}
 	} 
 	else {
-		if (is_string($data)) $data = str_replace($find, $replace, $data);
+		if (is_string($data)) {
+			$data = str_replace($find, $replace, $data);
+		}
 	}
 
 } 
