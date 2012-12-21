@@ -150,7 +150,8 @@ function getTables($cid) {
 	$result = array();
 	
 	$sth = dbRun('SHOW TABLES', $cid);
-	while($table = array_values(mysql_fetch_assoc($sth))) {
+	while($table = mysql_fetch_assoc($sth)) {
+		$table = array_values($table);
 		$result[] = $table[0];
 	}
 
@@ -209,13 +210,16 @@ foreach ($tables as $table) {
 
 	$index_fields = "";  // reset fields for each table.
 	$column_name = "";
-	$table_index = "";
+	$table_index = array();
 	$i = 0;
 
 	while ($field_rows = mysql_fetch_array($fields_list)) {
 		$column_name[$i++] = $field_rows['Field'];
 		if ($field_rows['Key'] == 'PRI') {
 			$table_index[$i] = true ;
+		}
+		else {
+			$table_index[$i] = false ;
 		}
 	}
 
@@ -241,7 +245,7 @@ foreach ($tables as $table) {
 			$data_to_fix = $row[$current_column];
 			$edited_data = $data_to_fix;            // set the same now - if they're different later we know we need to update
 
-			$unserialized = unserialize($data_to_fix);  // unserialise - if false returned we don't try to process it as serialised
+			$unserialized = @unserialize($data_to_fix);  // unserialise - if false returned we don't try to process it as serialised
 
 			if ($unserialized) {
 				recursive_array_replace($args['find'], $args['replace'], $unserialized);
