@@ -109,34 +109,44 @@ function dbConnect($args) {
 	return $result;
 }
 
+/**
+ * Get a list of all tables
+ * 
+ * @throws RuntimeException
+ * @param resource $cid DB connection
+ * @return array
+ */
+function getTables($cid) {
+	$result = array();
+	
+	$sth = mysql_query('SHOW TABLES', $cid);
+	if (!$sth) {
+		throw new RuntimeException(mysql_error($cid));
+	}
+	
+	while($table = array_values(mysql_fetch_assoc($sth))) {
+		$result[] = $table[0];
+	}
+
+	return $result;
+}
+
 try {
 	$args = parseArgs($argv);
 	$cid = dbConnect($args);
+	$tables = getTables($cid);
 }
 catch (Exception $e) {
 	echo "Fatal error\n";
 	echo "-----------\n";
-	echo $e->getMessage();
-	die();
+	die($e->getMessage());
 }
 
 
-// First, get a list of tables
-
-$SQL = "SHOW TABLES";
-$tables_list = mysql_query($SQL, $cid);
-
-if (!$tables_list) {
-    echo("ERROR: " . mysql_error() . "<br/>$SQL<br/>"); } 
-
-
 // Loop through the tables
-
-while ($table_rows = mysql_fetch_array($tables_list)) {
+foreach ($tables as $table) {
     
     $count_tables_checked++;
-    
-    $table = $table_rows['Tables_in_' . $args['database']];
     
     echo '<br/>Checking table: '.$table.'<br/>***************<br/>';  // we have tables!
    
