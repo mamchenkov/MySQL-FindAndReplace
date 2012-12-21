@@ -84,6 +84,20 @@ function parseArgs($argv) {
 }
 
 /**
+ * Output message
+ * 
+ * This wrapper is handy for different levels of debug
+ * output, as well as formatting (HTML vs. plain text).
+ * 
+ * @param string $message Message to output
+ * @return void
+ */
+function out($message) {
+	$ts = date('Y-m-d H:i:s');
+	print "[$ts] $message\n";
+}
+
+/**
  * Connect to the database
  * 
  * @throws RuntimeException
@@ -137,9 +151,10 @@ try {
 	$tables = getTables($cid);
 }
 catch (Exception $e) {
-	echo "Fatal error\n";
-	echo "-----------\n";
-	die($e->getMessage());
+	out("Fatal error");
+	out("-----------");
+	out($e->getMessage());
+	die();
 }
 
 
@@ -148,7 +163,7 @@ foreach ($tables as $table) {
 
 	$count_tables_checked++;
 
-	echo '<br/>Checking table: '.$table.'<br/>***************<br/>';  // we have tables!
+	out("Checking table: $table");
 
 	$SQL = "DESCRIBE ".$table ;    // fetch the table description so we know what to do with it
 	$fields_list = mysql_query($SQL, $cid);
@@ -228,7 +243,7 @@ foreach ($tables as $table) {
 		$WHERE_SQL = substr($WHERE_SQL,0,-4); // strip off the excess AND - the easiest way to code this without extra flags, etc.
 
 		$UPDATE_SQL = $UPDATE_SQL.$WHERE_SQL;
-		echo $UPDATE_SQL.'<br/><br/>';
+		out($UPDATE_SQL);
 
 		$result = mysql_query($UPDATE_SQL,$cid);
 		if (!$result) {
@@ -241,9 +256,11 @@ foreach ($tables as $table) {
 
 // Report
 
-$report = $count_tables_checked." tables checked; ".$count_items_checked." items checked; ".$count_items_changed." items changed;";
-echo '<p style="margin:auto; text-align:center">';
-echo $report;
+out("Report");
+out("------");
+out("Tables checked: $count_tables_checked");
+out("Items checked: $count_items_checked");
+out("Items changed: $count_items_changed");
 
 mysql_close($cid); 
 
@@ -251,8 +268,7 @@ mysql_close($cid);
 //  ---------
 $etimer = explode( ' ', microtime() );
 $etimer = $etimer[1] + $etimer[0];
-printf( "<br/>Script timer: <b>%f</b> seconds.", ($etimer-$stimer) );
-echo '</p>';
+out("Script timer: " . ($etimer-$stimer). " seconds");
 //  ---------
 
 function recursive_array_replace($find, $replace, &$data) {
