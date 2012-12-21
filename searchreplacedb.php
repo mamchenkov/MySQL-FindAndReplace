@@ -145,121 +145,98 @@ catch (Exception $e) {
 
 // Loop through the tables
 foreach ($tables as $table) {
-    
-    $count_tables_checked++;
-    
-    echo '<br/>Checking table: '.$table.'<br/>***************<br/>';  // we have tables!
-   
-    $SQL = "DESCRIBE ".$table ;    // fetch the table description so we know what to do with it
-    $fields_list = mysql_query($SQL, $cid);
-    
-    // Make a simple array of field column names
-    
-    $index_fields = "";  // reset fields for each table.
-    $column_name = "";
-    $table_index = "";
-    $i = 0;
-    
-    while ($field_rows = mysql_fetch_array($fields_list)) {
-                
-        $column_name[$i++] = $field_rows['Field'];
-        
-        if ($field_rows['Key'] == 'PRI') $table_index[$i] = true ;
-        
-    }
 
-//    print_r ($column_name);
-//    print_r ($table_index);
+	$count_tables_checked++;
 
-// now let's get the data and do search and replaces on it...
-    
-    $SQL = "SELECT * FROM ".$table;     // fetch the table contents
-    $data = mysql_query($SQL, $cid);
-    
-    if (!$data) {
-        echo("ERROR: " . mysql_error() . "<br/>$SQL<br/>"); } 
+	echo '<br/>Checking table: '.$table.'<br/>***************<br/>';  // we have tables!
 
+	$SQL = "DESCRIBE ".$table ;    // fetch the table description so we know what to do with it
+	$fields_list = mysql_query($SQL, $cid);
 
-    while ($row = mysql_fetch_array($data)) {
+	// Make a simple array of field column names
 
-        // Initialise the UPDATE string we're going to build, and we don't do an update for each damn column...
-        
-        $need_to_update = false;
-        $UPDATE_SQL = 'UPDATE '.$table. ' SET ';
-        $WHERE_SQL = ' WHERE ';
-        
-        $j = 0;
+	$index_fields = "";  // reset fields for each table.
+	$column_name = "";
+	$table_index = "";
+	$i = 0;
 
-        foreach ($column_name as $current_column) {
-            $j++;
-            $count_items_checked++;
+	while ($field_rows = mysql_fetch_array($fields_list)) {
+		$column_name[$i++] = $field_rows['Field'];
+		if ($field_rows['Key'] == 'PRI') {
+			$table_index[$i] = true ;
+		}
+	}
 
-//            echo "<br/>Current Column = $current_column";
+	// now let's get the data and do search and replaces on it...
 
-            $data_to_fix = $row[$current_column];
-            $edited_data = $data_to_fix;            // set the same now - if they're different later we know we need to update
-            
-//            if ($current_column == $index_field) $index_value = $row[$current_column];    // if it's the index column, store it for use in the update
-    
-            $unserialized = unserialize($data_to_fix);  // unserialise - if false returned we don't try to process it as serialised
-            
-            if ($unserialized) {
-                
-//                echo "<br/>unserialize OK - now searching and replacing the following array:<br/>";
-//                echo "<br/>$data_to_fix";
-//                
-//                print_r($unserialized);
-            
-                recursive_array_replace($args['find'], $args['replace'], $unserialized);
-                
-                $edited_data = serialize($unserialized);
-                
-//                echo "**Output of search and replace: <br/>";
-//                echo "$edited_data <br/>";
-//                print_r($unserialized);        
-//                echo "---------------------------------<br/>";
-                
-              }
-            
-            else {
-                
-                if (is_string($data_to_fix)) $edited_data = str_replace($args['find'],$args['replace'],$data_to_fix) ;
-                
-                }
-                
-            if ($data_to_fix != $edited_data) {   // If they're not the same, we need to add them to the update string
-                
-                $count_items_changed++;
-                
-                if ($need_to_update != false) $UPDATE_SQL = $UPDATE_SQL.',';  // if this isn't our first time here, add a comma
-                $UPDATE_SQL = $UPDATE_SQL.' '.$current_column.' = "'.mysql_real_escape_string($edited_data).'"' ;
-                $need_to_update = true; // only set if we need to update - avoids wasted UPDATE statements
-                
-            }
-            
-            if ($table_index[$j]){
-                $WHERE_SQL = $WHERE_SQL.$current_column.' = "'.$row[$current_column].'" AND ';
-            }
-        }
-        
-        if ($need_to_update) {
-            
-            $count_updates_run;
-            
-            $WHERE_SQL = substr($WHERE_SQL,0,-4); // strip off the excess AND - the easiest way to code this without extra flags, etc.
-            
-            $UPDATE_SQL = $UPDATE_SQL.$WHERE_SQL;
-            echo $UPDATE_SQL.'<br/><br/>';
-            
-            $result = mysql_query($UPDATE_SQL,$cid);
-    
-            if (!$result) {
-                    echo("ERROR: " . mysql_error() . "<br/>$UPDATE_SQL<br/>"); } 
-            
-        }
-        
-    }
+	$SQL = "SELECT * FROM ".$table;     // fetch the table contents
+	$data = mysql_query($SQL, $cid);
 
+	if (!$data) {
+		echo("ERROR: " . mysql_error() . "<br/>$SQL<br/>"); 
+	} 
+
+	while ($row = mysql_fetch_array($data)) {
+
+		// Initialise the UPDATE string we're going to build, and we don't do an update for each damn column...
+
+		$need_to_update = false;
+		$UPDATE_SQL = 'UPDATE '.$table. ' SET ';
+		$WHERE_SQL = ' WHERE ';
+
+		$j = 0;
+
+		foreach ($column_name as $current_column) {
+			$j++;
+			$count_items_checked++;
+
+			$data_to_fix = $row[$current_column];
+			$edited_data = $data_to_fix;            // set the same now - if they're different later we know we need to update
+
+			$unserialized = unserialize($data_to_fix);  // unserialise - if false returned we don't try to process it as serialised
+
+			if ($unserialized) {
+				recursive_array_replace($args['find'], $args['replace'], $unserialized);
+				$edited_data = serialize($unserialized);
+			}
+			else {
+				if (is_string($data_to_fix)) {
+					$edited_data = str_replace($args['find'],$args['replace'],$data_to_fix) ;
+				}
+			}
+
+			if ($data_to_fix != $edited_data) {   // If they're not the same, we need to add them to the update string
+
+				$count_items_changed++;
+
+				if ($need_to_update != false) {
+					$UPDATE_SQL = $UPDATE_SQL.',';  // if this isn't our first time here, add a comma
+				}
+				$UPDATE_SQL = $UPDATE_SQL.' '.$current_column.' = "'.mysql_real_escape_string($edited_data).'"' ;
+				$need_to_update = true; // only set if we need to update - avoids wasted UPDATE statements
+
+			}
+
+			if ($table_index[$j]){
+				$WHERE_SQL = $WHERE_SQL.$current_column.' = "'.$row[$current_column].'" AND ';
+			}
+		}
+
+		if ($need_to_update) {
+
+		$count_updates_run;
+		$WHERE_SQL = substr($WHERE_SQL,0,-4); // strip off the excess AND - the easiest way to code this without extra flags, etc.
+
+		$UPDATE_SQL = $UPDATE_SQL.$WHERE_SQL;
+		echo $UPDATE_SQL.'<br/><br/>';
+
+		$result = mysql_query($UPDATE_SQL,$cid);
+		if (!$result) {
+			echo("ERROR: " . mysql_error() . "<br/>$UPDATE_SQL<br/>"); 
+		} 
+
+		}
+	}
 }
 
 // Report
@@ -279,21 +256,24 @@ echo '</p>';
 //  ---------
 
 function recursive_array_replace($find, $replace, &$data) {
-    
-    if (is_array($data)) {
-        foreach ($data as $key => $value) {
-            if (is_array($value)) {
-                recursive_array_replace($find, $replace, $data[$key]);
-            } else {
-                // have to check if it's string to ensure no switching to string for booleans/numbers/nulls - don't need any nasty conversions
-                if (is_string($value)) $data[$key] = str_replace($find, $replace, $value);
-            }
-        }
-    } else {
-        if (is_string($data)) $data = str_replace($find, $replace, $data);
-    }
-    
-} 
 
+	if (is_array($data)) {
+		foreach ($data as $key => $value) {
+			if (is_array($value)) {
+				recursive_array_replace($find, $replace, $data[$key]);
+			} 
+			else {
+				// have to check if it's string to ensure no switching to string for booleans/numbers/nulls - don't need any nasty conversions
+				if (is_string($value)) {
+					$data[$key] = str_replace($find, $replace, $value);
+				}
+			}
+		}
+	} 
+	else {
+		if (is_string($data)) $data = str_replace($find, $replace, $data);
+	}
+
+} 
 
 ?>
