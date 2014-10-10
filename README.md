@@ -16,11 +16,32 @@ My changes so far are:
 * Fail on any MySQL error. Original code was just printing out the message.
 * Run-time configuration through CLI options
 * Lots of coding style changes (work in progress).
+* Composer installer
+
+Install
+-------
+
+Install with composer like so:
+
+```
+{
+	"require": {
+		"mamchenkov/mysql-find-and-replace": "1.0.*"
+	}
+}
+```
+
+Usage
+-----
+
+Always, always, always backup your database before usage:
+```
+$ mysqldump test_db > test_db.backup.sql
+```
 
 Run the script like so:
 
 ```
-$ mysqldump test_db > test_db.backup.sql
-$ php -f searchandreplace.php database=test_db find=foo replace=bar
+$ ./bin/mysql-replace.php database=test_db find=foo replace=bar
 ```
 
