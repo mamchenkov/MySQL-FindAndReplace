@@ -1,3 +1,4 @@
+#!/usr/bin/php
 <?php
 
 // This script is to solve the problem of doing database search and replace
