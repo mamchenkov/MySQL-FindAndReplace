@@ -1,0 +1,32 @@
+{
+	"name": "mamchenkov/mysql-find-and-replace",
+	"type": "library",
+	"description": "Find and replace tool for MySQL",
+	"keywords": ["database", "mysql", "strings", "find-replace"],
+	"homepage":  "https://github.com/mamchenkov/MySQL-FindAndReplace",
+	"license": "GPL-2.0",
+	"support": {
+		"source": "https://github.com/mamchenkov/MySQL-FindAndReplace",
+		"issues": "https://github.com/mamchenkov/MySQL-FindAndReplace/issues"
+	},
+	"authors": [
+		{
+			"name": "David Coveney",
+			"homepage": "http://davidcoveney.com/",
+			"role": "Author"
+		},
+		{
+			"name": "Leonid Mamchenkov",
+			"email": "leonid@mamchenkov.net",
+			"homepage": "http://mamchenkov.net",
+			"role": "Developer"
+		}
+	],
+	"require": {
+		"php": ">=5.3.0",
+		"ext-mysqli": "*"
+	},
+	"bin": [ 
+		"bin/mysql-replace.php" 
+	]
+}
