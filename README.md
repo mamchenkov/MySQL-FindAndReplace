@@ -1,6 +1,10 @@
 MySQL find and replace
 ======================
 
+**NOTE** There is a better way now - use [interconnectit/Search-Replace-DB](https://github.com/interconnectit/Search-Replace-DB).
+It has verbosity control, collation converter and works both with command
+line and web interface.  It's just better.
+
 This script performs a find and replace operation across all fields, of all
 tables in a specified MySQL database.  On top of regular fields, it also 
 processes serialized values.
